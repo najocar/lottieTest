@@ -31,6 +31,7 @@ uploadInput.addEventListener('change', function(event) {
         // Modificar colores dentro del JSON
         function modifyColors(data, color) {
             if (changeColor.checked) {
+                console.log("checked");
                 const rgbColor = hexToRgb(color); // Convierte el color hex a RGB
                 if (data.layers) {
                     data.layers.forEach(layer => {
