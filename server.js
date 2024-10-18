@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 // Servir los archivos estáticos (HTML, JS, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Iniciar el servidor en el puerto 8080
-app.listen(8080, () => {
-  console.log('Servidor iniciado en http://localhost:8080');
+// Iniciar el servidor en el puerto especificado por Vercel
+app.listen(process.env.PORT || 8080, () => {
+  console.log('Servidor iniciado');
 });
