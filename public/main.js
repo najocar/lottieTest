@@ -9,9 +9,20 @@ const ctx = canvas.getContext('2d');
 let frames = [];
 let animation = null;
 
+let timeoutId; // Asegúrate de declarar timeoutId en un ámbito accesible
+
+colorPicker.addEventListener('input', () => {
+    clearTimeout(timeoutId); // Limpiar el timeout anterior
+    timeoutId = setTimeout(() => {
+        console.log("hola");
+        uploadInput.dispatchEvent(new Event('change'));
+    }, 300); // Espera 300 ms antes de ejecutar
+});
+
 uploadInput.addEventListener('change', function(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
+    convertButton.disabled = true;
 
     reader.onload = function(e) {
         let animationData = JSON.parse(e.target.result);
@@ -84,6 +95,8 @@ uploadInput.addEventListener('change', function(event) {
 
     reader.readAsText(file);
 });
+
+
 
 // Función para convertir el color hex a un objeto RGB
 function hexToRgb(hex) {
