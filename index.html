@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie to MOV Converter</title>
+</head>
+<body>
+    <h1>Convert Lottie Animation to MOV</h1>
+    <input type="file" id="upload-json" accept=".json" />
+    <div id="lottie-container" style="width: 500px; height: 500px;"></div>
+    <canvas id="lottie-canvas" style="display:none;"></canvas>
+    <button id="convert-button" disabled>Convert to MOV</button>
+
+    <!-- Lottie Web -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+
+    <!-- Cargar FFmpeg desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
+
+    <!-- Enlaza tu JS aquí -->
+    <script src="./main.js"></script>
+</body>
+</html>
