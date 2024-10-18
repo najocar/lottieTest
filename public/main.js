@@ -3,6 +3,7 @@ const { createFFmpeg, fetchFile } = FFmpeg; // Ahora puedes usar FFmpeg desde la
 const uploadInput = document.getElementById('upload-json');
 const convertButton = document.getElementById('convert-button');
 const colorPicker = document.getElementById('color-picker');
+const changeColor = document.getElementById('change-color');
 const lottieContainer = document.getElementById('lottie-container');
 const canvas = document.getElementById('lottie-canvas');
 const ctx = canvas.getContext('2d');
@@ -29,22 +30,24 @@ uploadInput.addEventListener('change', function(event) {
 
         // Modificar colores dentro del JSON
         function modifyColors(data, color) {
-            const rgbColor = hexToRgb(color); // Convierte el color hex a RGB
-            if (data.layers) {
-                data.layers.forEach(layer => {
-                    if (layer.shapes) {
-                        layer.shapes.forEach(shape => {
-                            if (shape.it) {
-                                shape.it.forEach(item => {
-                                    // Cambiar el color de relleno (fill)
-                                    if (item.c) {
-                                        item.c.k = [rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255, 1]; // Cambiar a valores entre 0 y 1
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+            if (changeColor.checked) {
+                const rgbColor = hexToRgb(color); // Convierte el color hex a RGB
+                if (data.layers) {
+                    data.layers.forEach(layer => {
+                        if (layer.shapes) {
+                            layer.shapes.forEach(shape => {
+                                if (shape.it) {
+                                    shape.it.forEach(item => {
+                                        // Cambiar el color de relleno (fill)
+                                        if (item.c) {
+                                            item.c.k = [rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255, 1]; // Cambiar a valores entre 0 y 1
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
             }
         }
 
