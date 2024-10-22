@@ -11,10 +11,14 @@
     <h1 style="text-align: center; margin-top: 40px;">Convert Lottie Animation to MOV - <a href="https://magna25.github.io/lottie-editor/" target="_blank">Editar más colores</a></h1>
     <div style="display: flex; justify-content: center; width: 100%;">
         <div>
-            <input type="file" id="upload-json" accept=".json" />
-            <input type="color" id="color-picker" value="#000000" /> <!-- Selector de color -->
-            <input type="checkbox" name="changeColor" id="change-color">
-            <div id="lottie-container" style="width: 500px; height: 500px; margin-top: 15px; margin-bottom: 15px; border: solid 1px black; background-color: white;"></div>
+            <div style="display: flex; justify-content: space-between;">
+                <input type="file" id="upload-json" accept=".json" />
+                <div>
+                    <input type="color" id="color-picker" value="#000000" />
+                    <input type="checkbox" name="changeColor" id="change-color">
+                </div>
+            </div>
+            <div id="lottie-container"></div>
             <canvas id="lottie-canvas" style="display:none;"></canvas>
             <button id="convert-button" disabled style="width: 100%; padding: 10px; cursor: pointer;">Convert to MOV</button>
         </div>

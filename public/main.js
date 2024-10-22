@@ -1,4 +1,4 @@
-const { createFFmpeg, fetchFile } = FFmpeg; // Ahora puedes usar FFmpeg desde la variable global FFmpeg
+const { createFFmpeg, fetchFile } = FFmpeg;
 
 const uploadInput = document.getElementById('upload-json');
 const convertButton = document.getElementById('convert-button');
@@ -10,20 +10,28 @@ const ctx = canvas.getContext('2d');
 let frames = [];
 let animation = null;
 
-let timeoutId; // Asegúrate de declarar timeoutId en un ámbito accesible
+let timeoutId;
+let originalLottie = true;
+let originalColor;
 
 colorPicker.addEventListener('input', () => {
-    clearTimeout(timeoutId); // Limpiar el timeout anterior
-    timeoutId = setTimeout(() => {
-        console.log("hola");
-        uploadInput.dispatchEvent(new Event('change'));
-    }, 300); // Espera 300 ms antes de ejecutar
+    if (changeColor.checked) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            uploadInput.dispatchEvent(new Event('change'));
+        }, 300);
+    }
+});
+
+changeColor.addEventListener('change', () => {
+    uploadInput.dispatchEvent(new Event('change'));
 });
 
 uploadInput.addEventListener('change', function(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
     convertButton.disabled = true;
+    originalLottie = true;
 
     reader.onload = function(e) {
         let animationData = JSON.parse(e.target.result);
@@ -31,7 +39,10 @@ uploadInput.addEventListener('change', function(event) {
         // Modificar colores dentro del JSON
         function modifyColors(data, color) {
             if (changeColor.checked) {
-                console.log("checked");
+                if (originalLottie) {
+                    originalColor = data;
+                    originalLottie = false;
+                }
                 const rgbColor = hexToRgb(color); // Convierte el color hex a RGB
                 if (data.layers) {
                     data.layers.forEach(layer => {
@@ -49,14 +60,16 @@ uploadInput.addEventListener('change', function(event) {
                         }
                     });
                 }
+            } else {
+                data = originalColor;
             }
         }
 
-        // Llamamos a la función que modifica los colores
         modifyColors(animationData, colorPicker.value);
 
         if (animation) {
-            animation.destroy(); // Destruye cualquier animación anterior
+            // Destruir animación anterior
+            animation.destroy();
         }
 
         // Cargar y renderizar la nueva animación Lottie con los colores modificados
@@ -92,8 +105,7 @@ uploadInput.addEventListener('change', function(event) {
         });
 
         animation.addEventListener('complete', () => {
-            console.log('All frames captured.');
-            convertButton.disabled = false; // Habilitar el botón de convertir
+            convertButton.disabled = false;
         });
     };
 
@@ -119,7 +131,7 @@ convertButton.addEventListener('click', async () => {
 });
 
 async function convertFramesToMOV(frames) {
-    convertButton.disabled = true; // Desactivar mientras se realiza la conversión
+    convertButton.disabled = true;
     const ffmpeg = createFFmpeg({ log: true });
     await ffmpeg.load();
 
@@ -147,6 +159,5 @@ async function convertFramesToMOV(frames) {
     document.body.appendChild(a);
     a.click();
 
-    console.log('Conversion to MOV complete!');
-    convertButton.disabled = false; // Reactivar el botón
+    convertButton.disabled = false;
 }
