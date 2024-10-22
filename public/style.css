@@ -8,6 +8,10 @@ a {
     color: rgb(218, 218, 31);
 }
 
+#colorSelectorsContainer label {
+    margin-right: 5px;
+}
+
 #lottie-container {
     width: 500px;
     height: 500px;

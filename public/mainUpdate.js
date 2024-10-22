@@ -7,39 +7,49 @@ const canvas = document.getElementById('lottie-canvas');
 const ctx = canvas.getContext('2d');
 const colorSelectorsContainer = document.getElementById('colorSelectorsContainer');
 
-// const colorSelectorsContainer = document.createElement('div'); // Contenedor para los selectores
-// lottieContainer.appendChild(colorSelectorsContainer);
-
 let frames = [];
 let animation = null;
 let animationData = null; // Guardar la animación cargada
 let originalLottie = true;
-let originalColor;
-let previousColor;
-let colorState = {};
 let timeoutId;
-// Función para extraer los colores únicos del JSON
+
+// Función para extraer colores únicos del JSON
 function extractUniqueColors(data) {
     const colors = new Set();
-    if (data.layers) {
-        data.layers.forEach(layer => {
-            if (layer.shapes) {
-                layer.shapes.forEach(shape => {
-                    if (shape.it) {
-                        shape.it.forEach(item => {
-                            if (item.c && item.c.k) {
-                                const color = item.c.k.slice(0, 3); // Tomamos los primeros 3 valores (RGB)
-                                colors.add(color.join(",")); // Convertimos a string para hacer un Set
-                            }
-                        });
-                    }
-                });
+
+    // Función recursiva para explorar el JSON
+    function recursiveSearch(obj) {
+        if (typeof obj === 'object' && obj !== null) {
+            // Si encontramos un color en formato RGB
+            if (Array.isArray(obj.c) && obj.c.length >= 3) {
+                colors.add(obj.c.slice(0, 3).join(",")); // Agregar el color como string
             }
-        });
+            // Si encontramos un color en formato RGBA
+            if (Array.isArray(obj.k) && obj.k.length >= 4) {
+                colors.add(obj.k.slice(0, 3).join(",")); // Agregar color RGB (0-1)
+            }
+            // Si encontramos un color en un objeto de 'shapes'
+            if (Array.isArray(obj.shapes)) {
+                obj.shapes.forEach(shape => recursiveSearch(shape));
+            }
+
+            // Iterar sobre las propiedades del objeto
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    // Si encontramos un objeto o un array, buscamos recursivamente
+                    if (typeof obj[key] === 'object') {
+                        recursiveSearch(obj[key]);
+                    }
+                }
+            }
+        }
     }
 
-    return Array.from(colors); // Devolvemos un array de colores únicos
+    // Comenzar la búsqueda desde el objeto raíz
+    recursiveSearch(data);
+    return Array.from(colors);
 }
+
 
 // Crear un selector de color para cada color único
 function createColorSelectors(colors) {
@@ -71,59 +81,91 @@ function createColorSelectors(colors) {
 // Función para manejar el cambio de color
 function handleColorChange(event) {
     console.log('Color changed:', event.target.value);
-    const input = event.target; // Obtenemos el input que disparó el evento
+    const input = event.target;
     const newColor = input.value; // Obtener el color en formato HEX
     const rgbColor = hexToRgb(newColor); // Convertir a RGB (0-255)
     const colorArray = [rgbColor.r / 255, rgbColor.g / 255, rgbColor.b / 255]; // Normalizar a 0-1
 
-    const originalColor = input.dataset.originalColor; // Obtenemos el color original del dataset
-    const previousColor = input.dataset.previousColor; // Obtenemos el color anterior del dataset
+    const originalColor = input.dataset.originalColor;
+    const previousColor = input.dataset.previousColor;
 
-    // Llama a la función para modificar colores utilizando originalColor y previousColor
-    modifyColorsByOriginal(animationData, originalColor, previousColor, colorArray); // Modificar colores
+    modifyColorsByOriginal(animationData, originalColor, previousColor, colorArray);
 
-    // Actualizamos el color anterior a nuevo
-    input.dataset.previousColor = colorArray.join(","); // Guardar el color anterior como cadena normalizada
+    input.dataset.previousColor = colorArray.join(",");
 
-    reloadLottie(animationData); // Recargar la animación Lottie con los nuevos colores
+    reloadLottie(animationData);
 }
 
 // Función para modificar los colores específicos
 function modifyColorsByOriginal(data, originalColor, previousColor, newColorArray) {
-    if (data.layers) {
-        data.layers.forEach(layer => {
-            if (layer.shapes) {
-                layer.shapes.forEach(shape => {
-                    if (shape.it) {
-                        shape.it.forEach(item => {
-                            if (item.c && item.c.k) {
-                                const currentColor = item.c.k.slice(0, 3).join(","); // Convertir a cadena normalizada
-                                
-                                // Comparamos con el originalColor y previousColor
-                                if (isColorMatch(currentColor, originalColor) || isColorMatch(currentColor, previousColor)) {
-                                    item.c.k = [...newColorArray, 1]; // Cambiar al nuevo color
-                                }
-                            }
-                        });
-                    }
-                });
+    const targetColor = originalColor.split(",").map(Number);
+    const previousColorArray = previousColor.split(",").map(Number);
+
+    // Función recursiva para buscar y modificar colores
+    function recursiveModify(obj) {
+        if (typeof obj === 'object' && obj !== null) {
+            // Verificar si hay un color en formato RGBA en el objeto
+            if (Array.isArray(obj.c) && obj.c.length >= 3) {
+                const currentColor = obj.c.slice(0, 3); // Asegurarse de que sea un array
+                if (isColorMatch(currentColor, targetColor) || isColorMatch(currentColor, previousColorArray)) {
+                    obj.c = [...newColorArray, 1]; // Cambiar al nuevo color, añadir alfa 1
+                }
             }
-        });
+
+            // Verificar si hay un color en formato RGBA en el objeto
+            if (Array.isArray(obj.k) && obj.k.length >= 3) {
+                const currentColor = obj.k.slice(0, 3); // Asegurarse de que sea un array
+                if (isColorMatch(currentColor, targetColor) || isColorMatch(currentColor, previousColorArray)) {
+                    obj.k = [...newColorArray, 1]; // Cambiar al nuevo color, añadir alfa 1
+                }
+            }
+
+            // Si hay shapes, buscar dentro de ellos
+            if (Array.isArray(obj.shapes)) {
+                obj.shapes.forEach(shape => recursiveModify(shape));
+            }
+
+            // Recorrer otras propiedades del objeto
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key) && typeof obj[key] === 'object') {
+                    recursiveModify(obj[key]); // Llamada recursiva para propiedades anidadas
+                }
+            }
+        }
     }
+
+    // Comenzar la búsqueda desde el objeto raíz
+    recursiveModify(data);
 }
 
 // Función para verificar si los colores coinciden
 function isColorMatch(currentColor, colorToCompare) {
-    const currentRGB = currentColor.split(",").map(Number);
-    const compareRGB = colorToCompare.split(",").map(Number);
+    // Asegurarse de que ambos sean arrays
+    if (!Array.isArray(currentColor) || !Array.isArray(colorToCompare)) {
+        return false; // Si no son arrays, no puede haber coincidencia
+    }
 
-    // Verificamos que los valores de color estén prácticamente en el mismo rango
+    // Verificamos colores estén prácticamente en el mismo rango
     return (
-        Math.abs(currentRGB[0] - compareRGB[0]) < 0.01 &&
-        Math.abs(currentRGB[1] - compareRGB[1]) < 0.01 &&
-        Math.abs(currentRGB[2] - compareRGB[2]) < 0.01
+        Math.abs(currentColor[0] - colorToCompare[0]) < 0.01 &&
+        Math.abs(currentColor[1] - colorToCompare[1]) < 0.01 &&
+        Math.abs(currentColor[2] - colorToCompare[2]) < 0.01
     );
 }
+
+
+// Función para verificar si los colores coinciden
+// function isColorMatch(currentColor, colorToCompare) {
+//     const currentRGB = currentColor.split(",").map(Number);
+//     const compareRGB = colorToCompare.split(",").map(Number);
+
+//     // Verificamos que los valores de color estén prácticamente en el mismo rango
+//     return (
+//         Math.abs(currentRGB[0] - compareRGB[0]) < 0.01 &&
+//         Math.abs(currentRGB[1] - compareRGB[1]) < 0.01 &&
+//         Math.abs(currentRGB[2] - compareRGB[2]) < 0.01
+//     );
+// }
 
 
 // Recargar la animación Lottie
@@ -172,6 +214,7 @@ function reloadLottie(data) {
 
 // Procesar el archivo JSON y extraer colores
 uploadInput.addEventListener('change', function(event) {
+    colorSelectorsContainer.innerHTML = '';
     const file = event.target.files[0];
     const reader = new FileReader();
     convertButton.disabled = true;

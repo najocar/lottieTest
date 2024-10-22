@@ -13,10 +13,13 @@
         <div>
             <div style="display: flex; justify-content: space-between;">
                 <input type="file" id="upload-json" accept=".json" />
-                <div>
+                <!-- <div>
                     <input type="color" id="color-picker" value="#000000" />
                     <input type="checkbox" name="changeColor" id="change-color">
-                </div>
+                </div> -->
+            </div>
+            <div id="colorSelectorsContainer" style="margin-top: 15px;">
+
             </div>
             <div id="lottie-container"></div>
             <canvas id="lottie-canvas" style="display:none;"></canvas>
@@ -29,6 +32,6 @@
     <!-- Cargar FFmpeg desde CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
 
-    <script src="./main.js"></script> 
+    <script src="./mainUpdate.js"></script> 
 </body>
 </html>
